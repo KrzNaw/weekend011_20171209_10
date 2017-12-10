@@ -10,7 +10,7 @@ public class ExecutorCallable {
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Future<String> wynikCallable = executorService.submit(new Callable<String>() {
-
+            //future - taki typ wartości, który mówi o tym, że gdy wynik będize znany, to będzie Stringiem
             @Override
             public String call() throws Exception {
                 Thread.sleep(1000);

@@ -46,4 +46,6 @@ public class SumaTrzechWatkow {
 
         System.out.println("Suma wygenerowanych liczb = " + SumaTrzechWatkow.liczba1 + SumaTrzechWatkow.liczba2 + SumaTrzechWatkow.liczba3);
     }
+
+
 }
