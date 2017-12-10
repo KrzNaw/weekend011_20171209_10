@@ -1,4 +1,3 @@
-/*
 package pluralsight;
 
 import java.io.BufferedReader;
@@ -20,7 +19,7 @@ public class Adder implements Runnable {
 
         try (BufferedReader reader = Files.newBufferedReader(Paths.get(inFile))) {
             while ((line = reader.readLine()) != null)
-                total += Integer.parseInt(inline);
+                total += Integer.parseInt(line);
         }
 
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile))) {
@@ -34,4 +33,3 @@ public class Adder implements Runnable {
 
     }
 }
-*/

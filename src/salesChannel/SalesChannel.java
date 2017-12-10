@@ -38,7 +38,8 @@ public class SalesChannel {
 
         Thread producerThread = new Thread(producer);
         producerThread.start();
-        Thread consumerThread = new Thread(consumer);
+        Thread consumerThread = new InterruptedThread(consumer);
+        //consumerThread musi być typu InterruptedThread żeby mógł skorzystać z nadpisanego interrupt
         consumerThread.start();
 
 
@@ -76,10 +77,12 @@ class Producer implements Runnable {
 
     void putProductIntoChannel(Product product) {
         while (true) {
-            if (!salesChannel.isBusy()) {
-                salesChannel.add(product);
-                amountOfSold++;
-                break;
+            synchronized (this) {
+                if (!salesChannel.isBusy()) {
+                    salesChannel.add(product);
+                    amountOfSold++;
+                    break;
+                }
             }
         }
     }
@@ -103,6 +106,7 @@ class Producer implements Runnable {
 class Consumer implements Runnable {
     private SalesChannel salesChannel;
     private int amountOfBought;
+    private boolean interrupted;
 
     public Consumer(SalesChannel salesChannel) {
         this.salesChannel = salesChannel;
@@ -114,10 +118,12 @@ class Consumer implements Runnable {
 
     void buy() {
         while (true) {
-            if (salesChannel.isBusy()) {
-                Product product = salesChannel.get();
-                amountOfBought++;
-                System.out.println("Product bought: " + product);
+            synchronized (this) {
+                if (salesChannel.isBusy()) {
+                    Product product = salesChannel.get();
+                    amountOfBought++;
+                    System.out.println("Product bought: " + product);
+                }
             }
         }
     }
@@ -125,6 +131,10 @@ class Consumer implements Runnable {
     @Override
     public void run() {
         buy();
+    }
+
+    public void interrupt() {
+        interrupted = true;
     }
 
 }
@@ -148,12 +158,20 @@ class Product {
                 '}';
     }
 
-    class InterruptedThread extends Thread {
+}
 
-        @Override
-        public void interrupt() {
-            super.interrupt();
-        }
+class InterruptedThread extends Thread {
+
+    private Consumer consumer;
+
+    public InterruptedThread(Consumer consumer) {
+        super(consumer);
+        this.consumer = consumer;
     }
 
+    @Override
+    public void interrupt() {
+        consumer.interrupt();
+        System.out.println("Interrupt");
+    }
 }

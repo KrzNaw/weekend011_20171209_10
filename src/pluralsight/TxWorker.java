@@ -1,4 +1,4 @@
-/*
+
 package pluralsight;
 
 public class TxWorker implements Runnable {
@@ -13,10 +13,9 @@ public class TxWorker implements Runnable {
 
     @Override
     public void run() {
-        if (txType == ‘w’)
+        if (txType == 'w')
         account.withdrawal(amt);
-        if (txType == ‘d’)
+        if (txType == 'd')
         account.deposit(amt);
     }
 }
-*/
