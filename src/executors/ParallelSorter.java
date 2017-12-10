@@ -15,43 +15,108 @@ package executors;
  */
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class ParallelSorter {
 
+    public static void main(String[] args) {
 
+        ParallelSorter parallelSorter = new ParallelSorter();
+        List<Integer> testList = new ArrayList<>();
 
-        public List<Integer> sort (List < Integer > toSort) {
-            //Podziel tablice wejsciowa na 4 czesci
-            List<List<Integer>> partitions = partition(toSort);
-            //Dla kazdej czesci z partycji utworz nowy watek z uzyciem executora
-            //i callable
-
-
-            //posortuj w kazdym z watkow jedna czesc z partycji
-            //posortowane czesci przypisz do tablicy tablic sortedPartitions
-            List<List<Integer>> sortedPartitions = null;
-
-
-            //Scal posortowane czesci
-            return merge(sortedPartitions);
+        for (int i = 0; i<24; i+=3){
+            testList.add(i);
         }
 
+        parallelSorter.partition(testList);
+        parallelSorter.sort(testList);
+        System.out.println(testList);
 
-        private List<Integer> merge (List < List < Integer >> sortedPartitions) {
-            return ;
-        }
-
-
-        /**
-         * Dzieli tablice wejsciowa na 4 elementowa tablice tablic
-         * @param toSort
-         * @return
-         */
-
-        private List<List<Integer>> partition (List < Integer > toSort) {
-            return ;
-        }
 
     }
+
+
+    public List<Integer> sort(List<Integer> toSort) {
+        //Podziel tablice wejsciowa na 4 czesci
+        List<List<Integer>> partitions = partition(toSort);
+        //Dla kazdej czesci z partycji utworz nowy watek z uzyciem executora
+        //i callable
+        ExecutorService ec = Executors.newFixedThreadPool(4);
+        List<List<Integer>> result = new ArrayList<>();
+        for (List<Integer> partition : partitions){
+            Future<List<Integer>> submitOutcome = ec.submit(()->{
+                Collections.sort(partition);
+                return partition;
+            });
+
+            try {
+                result.add(submitOutcome.get());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+
+        //posortuj w kazdym z watkow jedna czesc z partycji
+        //posortowane czesci przypisz do tablicy tablic sortedPartitions
+        List<List<Integer>> sortedPartitions = null;
+
+        ec.shutdown();
+
+        //Scal posortowane czesci
+        return merge(sortedPartitions);
+
+    }
+
+
+    private List<Integer> merge(List<List<Integer>> sortedPartitions) {
+        List<Integer> merged = new ArrayList<>();
+        for(int i = 0; i<sortedPartitions.size(); i++){
+            Integer smallest = sortedPartitions.get(i).get(0);
+            if(smallest< i){
+
+            }
+        }
+
+
+        return merged;
+    }
+
+
+    /**
+     * Dzieli tablice wejsciowa na 4 elementowa tablice tablic
+     *
+     * @param toSort
+     * @return
+     */
+
+    private List<List<Integer>> partition(List<Integer> toSort) {
+        List<List<Integer>> result = new ArrayList<>();
+
+        result.add(new ArrayList<Integer>());
+        result.add(new ArrayList<Integer>());
+        result.add(new ArrayList<Integer>());
+        result.add(new ArrayList<Integer>());
+
+        for (int i = 0; i < toSort.size(); i++) {
+            int reminder = i % 4;
+            result.get(reminder).add(toSort.get(i));
+        }
+        System.out.println(result);
+        return result;
+    }
+
+    public ParallelSorter() {
+    }
+
+
+}
