@@ -13,18 +13,21 @@ public class SalesChannel {
 
     public Product get() {
         System.out.println("Get product: " + product);
-        return product;
+        Product localProduct = product;
+        product = null;
+        return localProduct;
     }
 
-    public boolean isBusy(){
-        return products != null;
+    public boolean isBusy() {
+        return product != null;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         SalesChannel salesChannel = new SalesChannel();
         List<Product> products = new ArrayList<>();
         Producer producer = new Producer(salesChannel, products);
         Consumer consumer = new Consumer(salesChannel);
+
 
         products.add(new Product("Vodka"));
         products.add(new Product("Beer"));
@@ -38,11 +41,21 @@ public class SalesChannel {
         Thread consumerThread = new Thread(consumer);
         consumerThread.start();
 
-        producer.getAmountOfSold();
-        consumer.getAmountOfBought();
 
+        while (shouldContinue(products.size(), consumer.getAmountOfBought())) {
+            Thread.sleep(1000);
+        }
 
+        System.out.println("- - - - - -");
+        consumerThread.interrupt();
 
+    }
+
+    private static boolean shouldContinue(int size, int amountOfBought) {
+        if (size == amountOfBought) {
+            return false;
+        }
+        return true;
     }
 
 }
@@ -51,8 +64,10 @@ public class SalesChannel {
 class Producer implements Runnable {
     private SalesChannel salesChannel;
     private List<Product> products;
+    private int amountOfSold;
 
-    public Producer(){}
+    public Producer() {
+    }
 
     public Producer(SalesChannel salesChannel, List<Product> products) {
         this.salesChannel = salesChannel;
@@ -60,44 +75,58 @@ class Producer implements Runnable {
     }
 
     void putProductIntoChannel(Product product) {
+        while (true) {
+            if (!salesChannel.isBusy()) {
                 salesChannel.add(product);
-    }
-
-    @Override
-    public void run() {
-        for(Product product : products){
-            System.out.println("Selling product: " + product);
-            this.putProductIntoChannel(product);}
-    }
-
-    int getAmountOfSold(){
-
-    }
-}
-
-
-class Consumer implements Runnable {
-    private SalesChannel salesChannel;
-
-    public Consumer(SalesChannel salesChannel) {
-        this.salesChannel = salesChannel;
-    }
-
-    void buyProductFromChannel() {
-        if(salesChannel.isBusy()) {
-            Product product = salesChannel.get();
-            System.out.println("Product bought: " + product);
+                amountOfSold++;
+                break;
+            }
         }
     }
 
     @Override
     public void run() {
-        buyProductFromChannel();
+        for (Product product : products) {
+            System.out.println("Selling product: " + product);
+            this.putProductIntoChannel(product);
+        }
     }
 
-    public int getAmountOfBought(){
-
+    @Deprecated
+    int getAmountOfSold() {
+        return amountOfSold;
     }
+
+}
+
+
+class Consumer implements Runnable {
+    private SalesChannel salesChannel;
+    private int amountOfBought;
+
+    public Consumer(SalesChannel salesChannel) {
+        this.salesChannel = salesChannel;
+    }
+
+    public int getAmountOfBought() {
+        return amountOfBought;
+    }
+
+    void buy() {
+        while (true) {
+            if (salesChannel.isBusy()) {
+                Product product = salesChannel.get();
+                amountOfBought++;
+                System.out.println("Product bought: " + product);
+            }
+        }
+    }
+
+    @Override
+    public void run() {
+        buy();
+    }
+
 }
 
 
@@ -119,5 +148,12 @@ class Product {
                 '}';
     }
 
-        
+    class InterruptedThread extends Thread {
+
+        @Override
+        public void interrupt() {
+            super.interrupt();
+        }
+    }
+
 }
