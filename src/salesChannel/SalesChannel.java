@@ -1,5 +1,8 @@
 package salesChannel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SalesChannel {
     private Product product;
 
@@ -15,6 +18,14 @@ public class SalesChannel {
         SalesChannel salesChannel = new SalesChannel();
         Producer producer = new Producer(salesChannel);
         Consumer consumer = new Consumer(salesChannel);
+
+        List<Product> products = new ArrayList<>();
+        products.add(new Product("Vodka"));
+        products.add(new Product("Beer"));
+        products.add(new Product("Herring"));
+        products.add(new Product("Pickle"));
+        products.add(new Product("Scotch"));
+        products.add(new Product("Cognac"));
 
     }
 
